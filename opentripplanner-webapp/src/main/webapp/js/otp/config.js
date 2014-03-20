@@ -11,6 +11,8 @@ if(typeof(otp) == "undefined" || otp == null) otp = {};
 if(typeof(otp.config) == "undefined" || otp.config == null) otp.config = {};
 if(typeof(otp.config.locale) == "undefined" || otp.config.locale == null) otp.config.locale = otp.locale.English;
 
+otp.config.locale = otp.locale.English_CA
+
 /* UNCOMMNET the following to have default fares in the UI -- note: routing engine fares take precedence 
 otp.config.default_fares = {
     regular : "2.00",
@@ -118,7 +120,7 @@ otp.config_defaults = {
         // The default extent to zoom the map to when the web app loads.
         // This can either be an OpenLayers.Bounds object or the string "automatic"
         // If set to "automatic", the client will ask the server for the default extent.
-        defaultExtent: "automatic",
+        defaultExtent: new OpenLayers.Bounds(144.72, -38, 145.3, -37.65),
 
         // These options are passed directly to the OpenLayers.Map constructor.
         options : {
