@@ -1,5 +1,7 @@
 package controllers;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import models.fieldtrip.ScheduledFieldTrip;
 import models.fieldtrip.FieldTripFeedback;
 import models.fieldtrip.FieldTripRequest;
@@ -209,6 +211,7 @@ public class FieldTrip extends Application {
         }            
         for(ScheduledFieldTrip delTrip : tripsToDelete) {
             delTrip.delete();
+            ftRequest.trips.remove(delTrip);
         }
 
 
@@ -225,8 +228,8 @@ public class FieldTrip extends Application {
         // add the ScheduledFieldTrip to the request
     
         ftRequest.trips.add(trip);
-                
-        System.out.println("saved ScheduledFieldTrip, id="+trip.id);
+        ftRequest.updateTripStatusFields();
+        ftRequest.save();
         
         // create the GroupItineraries and GTFSTrips
         trip.groupItineraries = new ArrayList<GroupItinerary>();
@@ -244,7 +247,7 @@ public class FieldTrip extends Application {
             }
         }
         
-        
+
         Long id = trip.id;
         renderJSON(id);
     }
@@ -293,28 +296,63 @@ public class FieldTrip extends Application {
         String privateKey = (String) Play.configuration.get("recaptcha.private_key");
 
         ReCaptcha captcha = ReCaptchaFactory.newReCaptcha(publicKey, privateKey, false);
-        ReCaptchaResponse response = captcha.checkAnswer(request.remoteAddress, recaptcha_challenge_field, recaptcha_response_field);
+        ReCaptchaResponse captchaResponse = captcha.checkAnswer(request.remoteAddress, recaptcha_challenge_field, recaptcha_response_field);
 
-        boolean validRecaptcha = false;
+        String errCode;
         
-        if (response.isValid()) {
-            validRecaptcha = true;
+        if (!captchaResponse.isValid()) {
+            errCode = "err_recaptcha";
+        }
+        else if(req.teacherName == null || req.teacherName.length() == 0) {
+            errCode = "err_teachername";
+        }
+        else if(!checkDate(req.travelDate)) {
+            errCode = "err_traveldate";
         }
         else {
-            render(req, validRecaptcha);
-        }
-        
-        if(req.teacherName != null && validRecaptcha) {
             req.id = null;
             req.save();
             Long id = req.id;
-            render(req, validRecaptcha);
+            errCode = "ok";
+        }
+        
+        render(req, errCode);
+    }
+    
+    @Util
+    protected static boolean checkDate(Date date) {
+        if(date == null) return false;
+        
+        Calendar cal = new GregorianCalendar();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, 1);
+        
+        Calendar now = Calendar.getInstance();
+        
+        if(cal.after(now)) return true;
+        
+        return false;
+    }
+
+    public static void getRequest(long requestId) {
+        TrinetUser user = checkLogin();        
+        checkAccess(user);
+
+        FieldTripRequest req = FieldTripRequest.findById(requestId);
+
+        System.out.println("OTS = " + req.outboundTripStatus);
+        if(req != null) {
+            Gson gson = new GsonBuilder()
+              .excludeFieldsWithoutExposeAnnotation()  
+              .serializeNulls()
+              .create();
+            renderJSON(gson.toJson(req));
         }
         else {
             badRequest();
-        }
+        }   
     }
-    
+
     public static void getRequests(Integer limit) {
         TrinetUser user = checkLogin();        
         checkAccess(user);
@@ -329,6 +367,37 @@ public class FieldTrip extends Application {
 
         Gson gson = new GsonBuilder()
           .excludeFieldsWithoutExposeAnnotation()  
+          .serializeNulls()
+          .create();
+        renderJSON(gson.toJson(requests));
+    }
+
+    public static void getRequestsSummary(Integer limit) {
+        TrinetUser user = checkLogin();        
+        checkAccess(user);
+      
+        List<FieldTripRequest> requests;
+        String sql = "order by timeStamp desc";
+        if(limit == null)
+            requests = FieldTripRequest.find(sql).fetch();
+        else {
+            requests = FieldTripRequest.find(sql).fetch(limit);
+        }
+
+        Gson gson = new GsonBuilder()
+          .excludeFieldsWithoutExposeAnnotation()
+          .setExclusionStrategies(new ExclusionStrategy() {
+
+            public boolean shouldSkipField(FieldAttributes fa) {
+                String name = fa.getName();
+                return(name.equals("trips") || name.equals("notes") || name.equals("feedback"));
+            }
+
+            public boolean shouldSkipClass(Class<?> type) {
+                return false;
+            }
+              
+          })
           .serializeNulls()
           .create();
         renderJSON(gson.toJson(requests));
@@ -386,6 +455,16 @@ public class FieldTrip extends Application {
         else {
             badRequest();
         }        
+    }
+
+    public static void updateRequests() {
+        List<FieldTripRequest> requests = FieldTripRequest.find("").fetch();
+        for(FieldTripRequest req : requests) {
+            req.updateTripStatusFields();
+            req.save();
+        }
+        String status = "Finished updating requests.";
+        render(status);
     }
     
     /* FieldTripFeedback */
