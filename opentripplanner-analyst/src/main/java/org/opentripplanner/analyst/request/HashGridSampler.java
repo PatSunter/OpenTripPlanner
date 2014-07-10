@@ -13,7 +13,9 @@
 
 package org.opentripplanner.analyst.request;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.index.strtree.STRtree;
 
 public class HashGridSampler implements SampleSource {
 
@@ -39,25 +42,29 @@ public class HashGridSampler implements SampleSource {
     private static final double SEARCH_RADIUS_M = 100;
     @Autowired
     private GraphService graphService;
-    private HashGrid index;
+    private Map<String, HashGrid> indexes = new HashMap<String, HashGrid>();
 
     @PostConstruct
     public void initialize() {
-        index = new HashGrid(50, 2000, 2000);
-        Graph graph = graphService.getGraph();
-        LOG.debug("Rasterizing streets into index...");
-        for (StreetVertex vertex : IterableLibrary.filter(graph.getVertices(), StreetVertex.class)) {
-            for (Edge e: vertex.getOutgoing()) {
-                index.rasterize(e.getGeometry(), e);
+        for (String routerId : graphService.getRouterIds()) {
+            HashGrid index = new HashGrid(50, 2000, 2000);
+            Graph graph = graphService.getGraph(routerId);
+            LOG.debug("Rasterizing streets into index for graph {}...", routerId);
+            for (StreetVertex vertex : IterableLibrary.filter(graph.getVertices(), StreetVertex.class)) {
+                for (Edge e: vertex.getOutgoing()) {
+                    index.rasterize(e.getGeometry(), e);
+                }
             }
+            LOG.debug("Done rasterizing streets into index.");
+            //System.out.println(index.densityMap());
+            this.indexes.put(routerId, index);
         }
-        LOG.debug("Done rasterizing streets into index.");
-        //System.out.println(index.densityMap());
     }
     
     @Override
     /** implements SampleSource interface */
-    public Sample getSample(double lon, double lat) {
+    public Sample getSample(double lon, double lat, String routerId) {
+        LOG.debug("In HashGridSample.getSample()");
         Coordinate coord = new Coordinate(lon, lat);
 //        Point p = geometryFactory.createPoint(c);
         
@@ -70,6 +77,20 @@ public class HashGridSampler implements SampleSource {
         double d1 = Double.MAX_VALUE;
 
         // query
+        HashGrid index = null;
+        if (routerId == null || routerId.isEmpty()) {
+            routerId = graphService.getDefaultRouterId();
+            LOG.debug("routerId not specified, set to default of '{}'", routerId);
+        }
+        synchronized (this.indexes) {
+            if ( ! indexes.containsKey(routerId)) {
+                LOG.error("no index registered with the routerId '{}'", routerId);
+                return null;
+            } else {
+                index = this.indexes.get(routerId);
+            }
+        }
+        
         List<Object> os = index.query(lon, lat, SEARCH_RADIUS_M);
         // query always returns a (possibly empty) list, but never null.
         // find two closest among nearby geometries
