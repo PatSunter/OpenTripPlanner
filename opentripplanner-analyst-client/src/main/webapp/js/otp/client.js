@@ -237,7 +237,7 @@ function mapSetupTool() {
 		break;
 	}
 	// store one-element arrays so we can append as needed for the second search
-    params.routerId = [$('#setupGraph').val()];
+	params.routerId = [$('#setupGraph').val()];
 	params.time = [$('#setupTime').val()];
 	params.mode = [$('#setupMode').val()];
 	params.maxWalkDistance = [$('#setupMaxDistance').val()];
@@ -258,7 +258,8 @@ function mapSetupTool() {
 				params[paramName].push(elemval);
 			}
 		};
-		var args = [['setupTime2', 'time'],
+		var args = [['setupGraph2', 'routerId'],
+		            ['setupTime2', 'time'],
 		            ['setupMode2', 'mode'],
 		            ['setupMaxDistance2', 'maxWalkDistance'],
 		            ['arriveByB', 'arriveBy']];
