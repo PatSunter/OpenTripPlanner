@@ -52,6 +52,11 @@
 				<img src="js/lib/leaflet/images/marker-green-rot.png">
 				<h2 id="headerA">Origin Setup</h2>
 				<span>
+					<label for="setupGraph">Graph:</label> 
+					<select id="setupGraph" >
+					</select>
+				</span>
+				<span>
 					<label for="timeSlider">Time of day:</label>
 					<input type="range" id="timeSlider" class="timeController" 
 					       min="0" max="24" step="0.25" value="8.0" />
@@ -92,6 +97,11 @@
 			<div id="endpointBControls" class="secondaryControl">
 				<img src="js/lib/leaflet/images/marker-red-rot.png"/>
 				<h2 id="headerB" class="secondaryControl">Destination Setup</h2>
+				<span>
+					<label for="setupGraph2">Graph:</label> 
+					<select id="setupGraph2" >
+					</select>
+				</span>
 				<span>
 					<label for="setupRelativeTime2">Time relative to origin:</label> 	
 					<select id="setupRelativeTime2" class="timeController" >

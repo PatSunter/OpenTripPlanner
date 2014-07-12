@@ -152,6 +152,8 @@ var overlayMaps = {
 	"Alignment": purpleLineAlignmentLayer
 };
 
+setGraphChooserVals();
+
 var initLocation = INIT_LOCATION;
 if (AUTO_CENTER_MAP) {
 	// attempt to get map metadata (bounds) from server
@@ -237,6 +239,7 @@ function mapSetupTool() {
 		break;
 	}
 	// store one-element arrays so we can append as needed for the second search
+	params.routerId = [$('#setupGraph').val()];
 	params.time = [$('#setupTime').val()];
 	params.mode = [$('#setupMode').val()];
 	params.maxWalkDistance = [$('#setupMaxDistance').val()];
@@ -257,7 +260,8 @@ function mapSetupTool() {
 				params[paramName].push(elemval);
 			}
 		};
-		var args = [['setupTime2', 'time'],
+		var args = [['setupGraph2', 'routerId'],
+		            ['setupTime2', 'time'],
 		            ['setupMode2', 'mode'],
 		            ['setupMaxDistance2', 'maxWalkDistance'],
 		            ['arriveByB', 'arriveBy']];
@@ -343,6 +347,28 @@ var downloadTool = function () {
     // prevent form submission
     return false;
 };
+
+function setGraphChooserVals() {
+	// attempt to get map router IDs  from server
+	var request = new XMLHttpRequest();
+	request.open("GET", "/opentripplanner-api-webapp/ws/routers", false); // synchronous request
+	request.setRequestHeader("Accept", "application/xml");
+	request.send(null);
+	if (request.status == 200 && request.responseXML != null) {
+		var x = request.responseXML;
+		var routerIdEls = x.getElementsByTagName('routerId');
+		console.info("Got %d routerId elements", routerIdEls.length);
+		var ii = 0;
+		for (ii = 0; ii < routerIdEls.length; ii++) {
+			routerId = routerIdEls[ii].textContent;
+			console.info("Got a routerId string as %s", routerId);
+			opt = new Option(routerId, routerId);
+			document.getElementById('setupGraph').options[ii] = opt;
+			opt = new Option(routerId, routerId);
+			document.getElementById('setupGraph2').options[ii] = opt;
+		}
+	}
+}
 
 var displayTimes = function(fractionalHours, fractionalHoursOffset) {
 	console.log("fhour", fractionalHours);
