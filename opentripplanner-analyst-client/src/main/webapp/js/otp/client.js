@@ -152,6 +152,8 @@ var overlayMaps = {
 	"Alignment": purpleLineAlignmentLayer
 };
 
+setGraphChooserVals();
+
 var initLocation = INIT_LOCATION;
 if (AUTO_CENTER_MAP) {
 	// attempt to get map metadata (bounds) from server
@@ -345,6 +347,30 @@ var downloadTool = function () {
     // prevent form submission
     return false;
 };
+
+function setGraphChooserVals() {
+	// attempt to get map router IDs  from server
+	var request = new XMLHttpRequest();
+	request.open("GET", "/opentripplanner-api-webapp/ws/routers", false); // synchronous request
+	request.setRequestHeader("Accept", "application/xml");
+	request.send(null);
+	if (request.status == 200 && request.responseXML != null) {
+		var x = request.responseXML;
+		var routerIdEls = x.getElementsByTagName('routerId');
+		console.info("Got %d routerId elements", routerIdEls.length);
+		opt = new Option("Same as Above", "same");
+		document.getElementById('setupGraph2').options[0] = opt;
+		var ii = 0;
+		for (ii = 0; ii < routerIdEls.length; ii++) {
+			routerId = routerIdEls[ii].textContent;
+			console.info("Got a routerId string as %s", routerId);
+			opt = new Option(routerId, routerId);
+			document.getElementById('setupGraph').options[ii] = opt;
+			opt = new Option(routerId, routerId);
+			document.getElementById('setupGraph2').options[ii+1] = opt;
+		}
+	}
+}
 
 var displayTimes = function(fractionalHours, fractionalHoursOffset) {
 	console.log("fhour", fractionalHours);
