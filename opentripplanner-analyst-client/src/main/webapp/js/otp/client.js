@@ -358,6 +358,8 @@ function setGraphChooserVals() {
 		var x = request.responseXML;
 		var routerIdEls = x.getElementsByTagName('routerId');
 		console.info("Got %d routerId elements", routerIdEls.length);
+		opt = new Option("Same as Above", "same");
+		document.getElementById('setupGraph2').options[0] = opt;
 		var ii = 0;
 		for (ii = 0; ii < routerIdEls.length; ii++) {
 			routerId = routerIdEls[ii].textContent;
@@ -365,7 +367,7 @@ function setGraphChooserVals() {
 			opt = new Option(routerId, routerId);
 			document.getElementById('setupGraph').options[ii] = opt;
 			opt = new Option(routerId, routerId);
-			document.getElementById('setupGraph2').options[ii] = opt;
+			document.getElementById('setupGraph2').options[ii+1] = opt;
 		}
 	}
 }
