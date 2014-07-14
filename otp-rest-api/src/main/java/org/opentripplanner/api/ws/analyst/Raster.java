@@ -61,17 +61,16 @@ public class Raster {
            @QueryParam("resolution") Double resolution,  
            @QueryParam("time") GregorianCalendar time,
            @QueryParam("format") @DefaultValue("image/geotiff") MIMEImageFormat format,
-           @QueryParam("crs") @DefaultValue("EPSG:4326") CoordinateReferenceSystem crs, 
-           @QueryParam("routerId") @DefaultValue("") String routerId
+           @QueryParam("crs") @DefaultValue("EPSG:4326") CoordinateReferenceSystem crs 
            ) throws Exception {
         
         // BoundingBox is a subclass of Envelope, an Envelope2D constructor parameter
-        Envelope2D bbox = new Envelope2D(index.getBoundingBox(crs, routerId));
+        Envelope2D bbox = new Envelope2D(index.getBoundingBox(crs));
         if (resolution != null) {
             width  = (int) Math.ceil(bbox.width  / resolution);
             height = (int) Math.ceil(bbox.height / resolution);
         }
-        TileRequest tileRequest = new TileRequest(bbox, width, height, routerId, null);
+        TileRequest tileRequest = new TileRequest(bbox, width, height);
         SPTRequest sptRequest = new SPTRequest(x, y, time);
         RenderRequest renderRequest = new RenderRequest(format, Layer.TRAVELTIME, Style.GRAY, false, false);
 

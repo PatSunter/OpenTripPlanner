@@ -53,15 +53,7 @@ public class SPTCache extends CacheLoader<RoutingRequest, ShortestPathTree> {
     @Override /** completes the abstract CacheLoader superclass */
     public ShortestPathTree load(RoutingRequest req) throws Exception {
         LOG.debug("spt cache miss : {}", req);
-        req.setRoutingContext(graphService.getGraph(req.routerId));
-        LOG.debug("..set req routing context to {}", req.rctx.toString());
-        if (req.rctx.graph != null) {
-            LOG.debug("...graph has info: {}", req.rctx.graph.toString());
-            //LOG.debug("...graph has agencies: {}", req.rctx.graph.agenciesIds.toString());
-        }
-        else {
-            LOG.debug("graph is null!");
-        }
+        req.setRoutingContext(graphService.getGraph());
         long t0 = System.currentTimeMillis();
         ShortestPathTree spt = sptService.getShortestPathTree(req);
         long t1 = System.currentTimeMillis();

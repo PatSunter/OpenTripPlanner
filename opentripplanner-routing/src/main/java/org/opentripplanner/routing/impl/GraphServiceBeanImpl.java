@@ -63,11 +63,6 @@ public class GraphServiceBeanImpl implements GraphService {
     }
 
     @Override
-    public String getDefaultRouterId() {
-        return "default";
-    }
-
-    @Override
     public boolean registerGraph(String graphId, boolean preEvict) {
         return false;
     }

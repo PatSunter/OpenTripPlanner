@@ -53,7 +53,7 @@ public class SampleFactory implements SampleSource {
 
     @Override
     /** implements SampleSource interface */
-    public Sample getSample(double lon, double lat, String routerId) {
+    public Sample getSample(double lon, double lat) {
         Coordinate c = new Coordinate(lon, lat);
         // query always returns a (possibly empty) list, but never null
         Envelope env = new Envelope(c);
@@ -61,7 +61,7 @@ public class SampleFactory implements SampleSource {
         double xscale = Math.cos(c.y * Math.PI / 180);
         env.expandBy(searchRadiusLat / xscale, searchRadiusLat);
         @SuppressWarnings("unchecked")
-        List<Edge> edges = (List<Edge>) index.queryPedestrian(env, routerId);
+        List<Edge> edges = (List<Edge>) index.queryPedestrian(env);
         // look for edges and make a sample
         return findClosest(edges, c, xscale);
     }
