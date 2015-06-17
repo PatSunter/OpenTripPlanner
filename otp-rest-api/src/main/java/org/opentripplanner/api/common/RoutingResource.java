@@ -80,6 +80,14 @@ public abstract class RoutingResource {
     /** The maximum distance (in meters) the user is willing to walk. Defaults to approximately 1/2 mile. */
     @DefaultValue("-1") @QueryParam("maxWalkDistance") protected List<Double> maxWalkDistance;
 
+    /** A factor to control weighted cost of walking rather than waiting.
+     *  Defaults to 2.0. */
+    @DefaultValue("-1") @QueryParam("walkReluctance") protected List<Double> walkReluctance;
+
+    /** A factor to control weighted cost of travelling on stairs, rather than waiting.
+     *  Defaults to 2.0. */
+    @DefaultValue("-1") @QueryParam("stairsReluctance") protected List<Double> stairsReluctance;
+
     /** A factor to control weighted cost of waiting rather than travel.
      *  Defaults to 0.95. */
     @DefaultValue("-1") @QueryParam("waitReluctance") protected List<Double> waitReluctance;
@@ -344,6 +352,8 @@ public abstract class RoutingResource {
         
         request.setWalkBoardCost(get(walkBoardCost, n, request.getWalkBoardCost()));
         request.setBikeBoardCost(get(bikeBoardCost, n, request.getBikeBoardCost()));
+        request.setWalkReluctance(get(walkReluctance, n, request.getWalkReluctance()));
+        request.setStairsReluctance(get(stairsReluctance, n, request.getStairsReluctance()));
         request.setWaitReluctance(get(waitReluctance, n, request.getWaitReluctance()));
         request.setWaitAtBeginningFactor(get(waitAtBeginningFactor, n, request.getWaitAtBeginningFactor()));
         // "Least transfers" optimization is accomplished via an increased transfer penalty.
